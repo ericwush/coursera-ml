@@ -71,22 +71,36 @@ H = sigmoid(z3);
 
 yk = zeros(num_labels, m); 
 for i = 1 : m
-  yk(y(i), i)=1;
-endfor
+  yk(y(i), i) = 1;
+end
 
 reg = lambda / (2 * m) * (sum(sum(Theta1(:, 2 : end) .^ 2)) + (sum(sum(Theta2(:, 2 : end) .^ 2))));
 
 J = 1 / m * sum (sum((-yk') .* log(H) - (1 - yk)' .* log(1 - H))) + reg;
 
+X = [ones(m, 1), X];
 for t = 1 : m
+  a1 = X(t, :); % a1: 1 * 401; Theta1: 25 * 401
+  z2 = Theta1 * a1'; % z2: 25 * 1
+  a2 = sigmoid(z2);
+  a2 = [1; a2]; % a2: 26 * 1; Theta2: 10 * 26
+  z3 = Theta2 * a2; % z3: 10 * 1
+  a3 = sigmoid(z3);
 
-endfor
+  z2 = [1; z2];
+  d3 = a3 - yk(:, t);
+  d2 = (Theta2' * d3) .* sigmoidGradient(z2);
+  d2 = d2(2 : end);
+  
+  Theta2_grad = Theta2_grad + d3 * a2';
+  Theta1_grad = Theta1_grad + d2 * a1;
+end
 
-
-
-
-
-
+	Theta1_grad(:, 1) = Theta1_grad(:, 1) ./ m;
+	Theta1_grad(:, 2 : end) = Theta1_grad(:, 2 : end) ./ m + ((lambda / m) * Theta1(:, 2 : end));
+	
+	Theta2_grad(:, 1) = Theta2_grad(:, 1) ./ m;
+	Theta2_grad(:, 2 : end) = Theta2_grad(:, 2 : end) ./ m + ((lambda / m) * Theta2(:, 2 : end));
 
 
 % -------------------------------------------------------------
